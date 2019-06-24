@@ -1,6 +1,6 @@
 ---
 title: "Code & data representation"
-output: pdf_document
+output: html_notebook
 ---
 
 #### Importing libraries:
