@@ -1,6 +1,6 @@
 ---
 title: "Code & data representation"
-output: html_notebook
+output: pdf_document
 ---
 
 #### Importing libraries:
@@ -9,13 +9,12 @@ library(tidyverse)
 library(lme4)
 library(sjstats)
 library(ggplot2)
-library(ggmosaic)
 ```
 
 #### Reading the source data:
 ```{r}
 Sys.setlocale(category = "LC_ALL", locale = "English")
-data_nu <- read.csv("final.csv", encoding = 'UTF-8')
+data <- read.csv("final.csv", encoding = 'UTF-8')
 Sys.setlocale(category = "LC_ALL", locale = "Japanese")
 ```
 
