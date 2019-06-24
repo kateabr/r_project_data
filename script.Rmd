@@ -1,0 +1,314 @@
+---
+title: "Code & data representation"
+output: html_notebook
+---
+
+#### Importing libraries:
+```{r}
+library(tidyverse)
+library(lme4)
+library(sjstats)
+library(ggplot2)
+library(ggmosaic)
+```
+
+#### Reading the source data:
+```{r}
+Sys.setlocale(category = "LC_ALL", locale = "English")
+data <- read.csv("final.csv", encoding = 'UTF-8')
+Sys.setlocale(category = "LC_ALL", locale = "Japanese")
+```
+
+#### Section 1: Conjugation
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$conj, data$form))
+```
+##### Running the regression:
+```{r}
+data %>%
+  lm(as.numeric(form) ~ conj, data = .) %>%
+  summary()
+```
+
+#### Section 2: Context postition
+##### Testing for dependence:
+```{r}
+# without ambiguous contexts
+data.unamb_cont <- data[data$context_pos != "unclear", ]
+fisher.test(table(data.unamb_cont$context_pos, data.unamb_cont$form))
+
+# with ambiguous contexts
+fisher.test(table(data$context_pos, data$form))
+```
+
+##### Running the regression:
+```{r}
+# without ambiguous contexts
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos, data = .) %>%
+  summary()
+
+# with ambiguous contexts
+data %>%
+  lm(as.numeric(form) ~ context_pos, data = .) %>%
+  summary()
+```
+
+#### Section 2.5: Conjugation + context postition
+##### Running the regression:
+```{r}
+# without ambiguous contexts
+data.unamb_cont %>%
+  glmer(form ~ context_pos + (1|conj),
+        family = binomial(link="logit"), data = ., control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=10000))) -> gl2.5
+summary(gl2.5)
+icc(gl2.5)
+
+# with ambiguous contexts
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos + conj, data = .) %>%
+  summary()
+```
+
+#### Section 3: Sex
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$sex, data$form))
+```
+
+##### Running the regression:
+```{r}
+data %>%
+  lm(as.numeric(form) ~ sex, data = .) %>%
+  summary()
+```
+
+#### Section 3.5: Sex + context position + conjugation
+##### Running the regression:
+```{r}
+# without ambiguous contexts
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ sex + context_pos + conj, data = .) %>%
+  summary()
+
+# with ambiguous contexts
+data %>%
+  lm(as.numeric(form) ~ sex + context_pos + conj, data = .) %>%
+  summary()
+
+# without ambiguous contexts and with conjugation as a random effect
+data.unamb_cont %>%
+  glmer(form ~ sex + context_pos + (1|conj),
+        family = binomial(link="logit"), data = ., control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=10000))) -> gl3.5
+
+summary(gl3.5)
+icc(gl3.5)
+```
+
+#### Section 4: Length
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$length, data$form))
+```
+
+#### Section 4.5: Length + context position + sex + conjugation
+```{r}
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos + sex + length + conj, data = .) %>%
+  summary()
+```
+
+
+#### Section 5: Part of speech
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$part_of_speech, data$form))
+```
+
+##### Running the regression:
+```{r}
+data %>%
+  lm(as.numeric(form) ~ part_of_speech, data = .) %>%
+  summary()
+```
+
+
+#### Section 5.5: Part of speech + context position + sex + conjugation
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + conj, data = .) %>%
+  summary()
+```
+
+#### Section 6: Positivity & negativity
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$pos_neg, data$form))
+```
+
+##### Running the regression:
+```{r}
+data %>%
+  lm(as.numeric(form) ~ pos_neg, data = .) %>%
+  summary()
+```
+
+
+#### Section 6.5: Positivity & negativity + part of speech + context position + sex + conjugation
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + conj, data = .) %>%
+  summary()
+```
+
+#### Section 7: Past tense
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$past_tense, data$form))
+```
+
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ past_tense, data = .) %>%
+  summary()
+```
+
+
+#### Section 7.5: Past tense + context position + sex + part of speech + conjugation + positivity & negativity
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + conj + past_tense, data = .) %>%
+  summary()
+
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + past_tense, data = .) %>%
+  summary()
+```
+
+#### Section 8: Provisional & conditional form
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$prov_cond, data$form))
+```
+
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ prov_cond, data = .) %>%
+  summary()
+```
+
+#### Section 8.5: Provisional & conditional form + context position + sex + part of speech + past tense + positivity & negativity
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + past_tense + prov_cond, data = .) %>%
+  summary()
+```
+
+#### Section 9: Question
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$quest, data$form))
+```
+
+#### Section 9.5: Question + provisional & conditional form + context position + sex + part of speech + past tense + positivity & negativity
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + past_tense + prov_cond + quest, data = .) %>%
+  summary()
+```
+## Final model:
+```{r}
+data.unamb_cont %>%
+  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + past_tense + prov_cond, data = .) %>%
+  summary()
+```
+
+### Visualizing data
+```{r}
+data %>%
+  count(length) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(length))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  labs(title = "Distribution of length (in syllables)")
+data %>%
+  count(context_pos) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(context_pos))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  labs(title = "Distribution of conjugations")
+data %>%
+  count(part_of_speech) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(part_of_speech))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("adjective", "adverb", "participle", "verb")) +
+  labs(title = "Distribution of parts of speech")
+data %>%
+  count(pos_neg) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(pos_neg))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("negative", "positive")) +
+  labs(title = "Distribution of positivity & negativity")
+data %>%
+  count(past_tense) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(past_tense))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("non-past", "past")) +
+  labs(title = "Distribution of past tense")
+data %>%
+  count(conj) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(conj))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("1st", "2nd")) +
+  labs(title = "Distribution of conjugations")
+data %>%
+  count(sex) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(sex))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("female", "male")) +
+  labs(title = "Distribution of speakers' sex")
+data %>%
+  count(form) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(form))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("substantivation", "verbal form")) +
+  labs(title = "Distribution of strategies")
+data %>%
+  count(prov_cond) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(prov_cond))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "vertical", legend.position="bottom") +
+  scale_fill_discrete(labels = c("not a prov/cond form", "form expressed through separate word", "form expressed through a marker")) +
+  labs(title = "Distribution of provisional and conditional forms")
+data %>%
+  count(quest) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(quest))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("not a question", "a question")) +
+  labs(title = "Distribution of questions")
+```
