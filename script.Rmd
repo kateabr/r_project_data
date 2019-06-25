@@ -1,36 +1,308 @@
 ---
-title: "Code & data representation"
-output: html_notebook
+title: Strategies of choice between substantivation and regular verb usage in the
+  context of ability in Japanese
+output:
+  pdf_document:
+    latex_engine: xelatex
 ---
+Ekaterina Birjukova, Alexandra Efimova
+
+### Hypothesis
+There are two different ways of expressing ability to do something in Japanese: one through verb substantivation, another through a verbal form, and there is no difference in meaning between them. We believe that form choice depends on conjugation (we will consider only the first and the second one, leaving out the third one as its ability-expressing strategy is somewhat different), length of the verb that holds the main semantics (the number of syllables that it comprises) and a number of other factors.
+
+### Research design
+Our research will be based on materials from parallel Japanese-English corpora at [https://context.reverso.net/](https://context.reverso.net/) and [http://www.manythings.org/corpus/](http://www.manythings.org/corpus/). We will also use data from [https://www5.atwiki.jp/hmiku/](https://www5.atwiki.jp/hmiku/) lyrics database for more precise statistical testing.
+Null hypothesis is as follows:
+Choice strategy for expressing ability in Japanese verbs is completely random and does not depend on any of the mentioned factors.
+Alternative hypothesis:
+There is a more or less clear pattern that allows actually calling this choice a strategy.
+We intend to use logistic regression to check whether the mentioned effects are statistically significant and whether they have any intrinsic correlation between each other.
+
+### Our data
+All data has been collected with web scraping script written in Python. There are currently several hundred examples from the parallel corpora and approximately thirty thousand texts from the database. The data can be accessed on [GitHub](https://github.com/kateabr/r_project_data).
+
+From all the data We have collected, we have gathered information about 52 randomly picked verbs. Each line of our data table contains following properties:
+
+1. __inf__ _[character string]_ -- verb in its infinitive form (we decided to preserve it, because there are a few cases of homonymy);
+
+2. __length__ _[non-negative integer number]_ -- length of the verb’s infinitive form in syllables;
+
+3. __tr__ _[character string]_ -- translation of the verb;
+
+4. __context_pos__ _[factor]_ -- position of the verb in the context:
+
+  + _right_;
+
+  + _left_;
+
+  + _unclear_;
+
+5. __part_of_speech__ _[factor]_ -- the verb’s grammatical type of speech:
+
+  + _adj_ -- adjective;
+
+  + _adv_ -- verbal adverb or state adverb;
+
+  + _v_ -- verb;
+
+  + _part_ -- participle;
+
+  (Note that the division is purely empirical: we assigned labels based on the word's behavious; more on this later in the paper)
+
+6. __pos_neg__ _[factor]_ -- whether the verb or the verb to which the target verb form is attached has or has not negation:
+
+  + _pos_ -- not negated;
+
+  + _neg_ -- negated;
+
+7. __past_tense__ _[factor]_ -- whether the verb or the verb to which the target verb form is attached is in past tense or not:
+
+  + _yes_;
+
+  + _no_;
+
+8. __conj__ _[factor]_ -- conjugation of the verb:
+
+  + _1_;
+
+  + _2_;
+
+9. __sex__ _[factor]_ -- sex of the speaker:
+
+  + _f_ -- female;
+
+  + _m_ -- male;
+
+10. __form__ __[factor]__ -- type of the strategy:
+
+  + _vf_ -- verbal form;
+
+  + _subst_ -- substantivation;
+
+11. __prov_cond__ _[factor]_ -- whether the verb is in the provisional or conditional form:
+
+  + _no_ -- not in the provisional or conditional form;
+
+  + _vf_ -- the provisional or conditional form is expressed through a marker;
+  
+  + _sep_ -- the provisional or conditional form is expressed through a separate word;
+
+12. __quest__ _[factor]_ -- whether the verb or the verb to which the target verb form is attached has a question marker:
+
+  + _yes_;
+  + _no_.
+
+#### Context position
+Examples of right context position:
+
+\begin{exe}
+\ex \glll 僕 は 歌う\\
+        boku wa utau\\
+        I THEME to.sing\\
+    \glt `I sing'
+    
+\ex \glll 僕 は 歌 を 歌う\\
+        boku wa uta wo utau\\
+        I THEME song ACC to.sing\\
+    \glt `I sing a song'
+\end{exe}
+
+In these examples the verb “to sing” is located to the right from both the subject and the object and denotes an active action, as opposed to its left position:
+
+\begin{exe}
+\ex \glll 僕 が 歌う 歌\\
+        boku ga utau uta\\
+        I NOM to.sing song\\
+    \glt `a song that I sing'
+    
+\ex \glll 歌 を 歌う 僕\\
+        uta wo utau boku\\
+        song ACC to.sing I\\
+    \glt `I who sing a song'
+\end{exe}
+
+In examples (3) and (4) the verb expresses a property, while the actual verbal action of the sentence will be expressed through some other verb.
+It is often impossible to establish the context type, because Japanese allows for omission, which could be reconstructed in both ways:
+
+\begin{exe}
+\ex \glll 歌わ-ない 踊ら-ない\\
+        utawanai odoranai\\
+        sing-NEG to.dance-NEG\\
+\end{exe}
+    
+(5) could be translated both as
+
+\begin{exe}
+\ex `[僕/君/... は/が] 歌わない 踊らない'\\
+    \glt `[I/you/...] don’t sing, [I/you/...] don’t dance'
+\end{exe}
+
+and
+
+\begin{exe}
+\ex `歌わない 踊らない [僕/君/...]'\\
+    \glt `[I/you/...] who don’t sing, [I/you/...] who don’t dance'
+\end{exe}
+
+In such ambiguous cases we marked the context type as “unclear”.
+
+#### Grammatical parts of speech
+Verbal adverbs and participles are clearly related to the verbs and could be assumed to be verbal forms. In Japanese, simple verbal negation in casual speech form behaves like an adjective: it has a past tense (8 and 9), a special form that non-final adjectives receive when there is more than one adjective related to the same word (10):
+
+\begin{exe}
+\ex \glll 見-え-ない 闇\\
+        mi-e-nai yami\\
+        sing-NEG to.dance-NEG\\
+    \glt `darkness in which nothing can be seen'
+    
+\ex \glll 深い 闇\\
+        fukai yami\\
+        deep darkness\\
+    \glt `deep darkness'
+    
+\ex \glll 見-え-な-くて 深-くて 怖い 闇\\
+        mi-e-na-kute fuka-kute kowai yami\\
+        to.see-POT-NEG-ENUM deep-ENUM scary darkness\\
+    \glt `deep scary darkness in which nothing can be seen'
+\end{exe}
+
+For these reasons, the grammatical category for such verbal forms has been marked as “adjective”.
+
+Entries marked as “verbs” are regular verb forms, like the verb "to sing" in examples (1) and (2).
+
+#### Positivity and negativity
+As we have already shown, adjective-like verbal forms have their own negativity marker. So do state and verbal adverbs:
+
+\begin{exe}
+\ex \glll 疲れ-て 立-て-な-く-なる\\
+        tsukare-te ta-te-naku-naru\\
+        to.become.tired-PART to.stand-POT-NEG-ADV-become\\
+    \glt `to become unable to stand [due to] having become tired'
+    
+\ex \glll 答え 分-れ-ず\\
+        kotae waka-re-zu\\
+        answer to.understand-POT-NEG.ADV\\
+    \glt `not being able to understand the answer'
+\end{exe}
+
+Participles’ negation is the one of the verb they are attached to:
+
+\begin{exe}
+\ex \glll 言-え-て い-ない 言葉\\
+        i-e-te i-nai kotoba\\
+        to.say-POT-PART to.be-NEG word\\
+    \glt `words that cannot be said'
+\end{exe}
+
+#### Past tense
+There is no future tense in Japanese, so only past and non-past tense has been marked.
+
+#### Conjugations
+In this paper, we refer to the 2 conjugations based on verbal form of strategy expression:
+
+\begin{exe}
+\ex \gll 言-う → 言-える\\
+        i-u 　 i-eru\\
+    \glt `to say → to be able to say'
+    
+\ex \gll 食べ-る → 食べ-られる\\
+        tabe-ru 　 tabe-rareru\\
+    \glt `to eat → to be able to eat'
+\end{exe}
+
+where the first is an example of a first conjugation verb, the second -- of a second conjugation verb. Very conveniently, this strategy depends on the number of syllables that are not incorporated in the verbal stem: if there are any, then it is the second conjugation.
+
+#### Provisional and conditional forms
+There are two ways to put a verb into a provisional or conditional form: to add a special marker or a separate word “if”.
+Provisional form of the verb means that something can or will be able to happen, provided that some requirement has been met:
+
+\begin{exe}
+\ex \glll 漢字 を 覚え-られ-たら 書く\\
+        kanji wo oboe-rare-tara kaku\\
+        kanji ACC to.learn-POT-PROV to.write-POT\\
+    \glt `[I] write kanji if (as soon as) I am able to learn them'
+    
+\ex \glll 漢字 を 覚え-られる なら 書く\\
+        kanji wo oboe-rare-ru nara kaku\\
+        kanji ACC to.learn-POT if to.write-POT\\
+    \glt `[I] write kanji if (as soon as) I am able to learn them'
+\end{exe}
+
+Conditional form of the verb means that something can be done if some requirement is met:
+
+\begin{exe}
+\ex \glll 漢字 を 覚え-られ-ば 書く\\
+        kanji wo oboe-rare-tara kaku\\
+        kanji ACC to.learn-POT-COND to.write-POT\\
+    \glt `if [I] can learn kanji, I write them'
+\end{exe}
+
+The boundary between the two is somewhat vague, so we decided to join them.
+
+#### Methods of analysis
+We are going to use Fisher’s test to check our preliminary assumptions regarding the importance of the factors for the choice of the strategy.
+
+We are also going to use logistic regression to see which factors are more important and ultimately to build a model that describes our strategies in the best way possible. First, we will see how much of the variance a factor can explain on its own. Then, we will incorporate it into a multi-variable model and see whether it has much impact on the variance of that model. If it does, we will include it into our model.
+
+We are using Nagelkerke's R^2^ to assess our models through the amount of variance that they are able to explain.
+
+### Code and results
 
 #### Importing libraries:
-```{r}
+```{r message=FALSE}
 library(tidyverse)
+library(rms)
 library(lme4)
 library(sjstats)
 library(ggplot2)
 ```
 
 #### Reading the source data:
-```{r}
+```{r results="hide"}
+# for some reason table layout breaks if the locale is not English
 Sys.setlocale(category = "LC_ALL", locale = "English")
+
 data <- read.csv("final.csv", encoding = 'UTF-8')
-Sys.setlocale(category = "LC_ALL", locale = "Japanese")
 ```
 
-#### Section 1: Conjugation
+#### 1. Conjugation
+
+```{r echo=FALSE}
+data %>%
+  count(conj) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(conj))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("1st", "2nd")) +
+  labs(title = "Distribution of conjugations")
+```
+
 ##### Testing for dependence:
 ```{r}
 fisher.test(table(data$conj, data$form))
 ```
 ##### Running the regression:
 ```{r}
+data_d <- datadist(data)
+options(datadist="data_d")
+
 data %>%
-  lm(as.numeric(form) ~ conj, data = .) %>%
-  summary()
+  lrm(form ~ conj, data = .) %>%
+  print()
 ```
 
-#### Section 2: Context postition
+#### 2. Context position
+```{r echo=FALSE}
+data %>%
+  count(context_pos) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(context_pos))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  labs(title = "Distribution of context positions")
+```
+
 ##### Testing for dependence:
 ```{r}
 # without ambiguous contexts
@@ -44,240 +316,46 @@ fisher.test(table(data$context_pos, data$form))
 ##### Running the regression:
 ```{r}
 # without ambiguous contexts
+data.unamb_cont$context_pos <- droplevels(data.unamb_cont$context_pos)
+data_d.unamb <- datadist(data.unamb_cont)
+options(datadist="data_d.unamb")
 data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos, data = .) %>%
-  summary()
+  lrm(form ~ context_pos, data = .) %>%
+  print()
 
+options(datadist="data_d")
 # with ambiguous contexts
 data %>%
-  lm(as.numeric(form) ~ context_pos, data = .) %>%
-  summary()
+  lrm(form ~ context_pos, data = .) %>%
+  print()
 ```
 
-#### Section 2.5: Conjugation + context postition
-##### Running the regression:
+Unsurprisingly, inclusion of ambiguous context produces worse results. From now on we are excluding it from all computations.
+
+##### Trying a mixed model and a simple multi-variable model:
 ```{r}
-# without ambiguous contexts
+# mixed model
 data.unamb_cont %>%
   glmer(form ~ context_pos + (1|conj),
         family = binomial(link="logit"), data = ., control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=10000))) -> gl2.5
 summary(gl2.5)
 icc(gl2.5)
+```
 
-# with ambiguous contexts
+We have not been able to assess the mixed model's R^2^, but the ICC for the random effect shows that it is quite useless. From now on we will only use multi-variable models with fixed effects.
+
+```{r}
+# model with all fixed variables
 data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos + conj, data = .) %>%
-  summary()
+  lrm(form ~ context_pos + conj, data = .) %>%
+  print()
 ```
 
-#### Section 3: Sex
-##### Testing for dependence:
-```{r}
-fisher.test(table(data$sex, data$form))
-```
+We are keeping the model with fixed effects that we have obtained here and will be refer to it in the future as "best model".
 
-##### Running the regression:
-```{r}
-data %>%
-  lm(as.numeric(form) ~ sex, data = .) %>%
-  summary()
-```
+#### 3. Sex
 
-#### Section 3.5: Sex + context position + conjugation
-##### Running the regression:
-```{r}
-# without ambiguous contexts
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ sex + context_pos + conj, data = .) %>%
-  summary()
-
-# with ambiguous contexts
-data %>%
-  lm(as.numeric(form) ~ sex + context_pos + conj, data = .) %>%
-  summary()
-
-# without ambiguous contexts and with conjugation as a random effect
-data.unamb_cont %>%
-  glmer(form ~ sex + context_pos + (1|conj),
-        family = binomial(link="logit"), data = ., control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=10000))) -> gl3.5
-
-summary(gl3.5)
-icc(gl3.5)
-```
-
-#### Section 4: Length
-##### Testing for dependence:
-```{r}
-fisher.test(table(data$length, data$form))
-```
-
-#### Section 4.5: Length + context position + sex + conjugation
-```{r}
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos + sex + length + conj, data = .) %>%
-  summary()
-```
-
-
-#### Section 5: Part of speech
-##### Testing for dependence:
-```{r}
-fisher.test(table(data$part_of_speech, data$form))
-```
-
-##### Running the regression:
-```{r}
-data %>%
-  lm(as.numeric(form) ~ part_of_speech, data = .) %>%
-  summary()
-```
-
-
-#### Section 5.5: Part of speech + context position + sex + conjugation
-##### Running the regression:
-```{r}
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + conj, data = .) %>%
-  summary()
-```
-
-#### Section 6: Positivity & negativity
-##### Testing for dependence:
-```{r}
-fisher.test(table(data$pos_neg, data$form))
-```
-
-##### Running the regression:
-```{r}
-data %>%
-  lm(as.numeric(form) ~ pos_neg, data = .) %>%
-  summary()
-```
-
-
-#### Section 6.5: Positivity & negativity + part of speech + context position + sex + conjugation
-##### Running the regression:
-```{r}
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + conj, data = .) %>%
-  summary()
-```
-
-#### Section 7: Past tense
-##### Testing for dependence:
-```{r}
-fisher.test(table(data$past_tense, data$form))
-```
-
-##### Running the regression:
-```{r}
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ past_tense, data = .) %>%
-  summary()
-```
-
-
-#### Section 7.5: Past tense + context position + sex + part of speech + conjugation + positivity & negativity
-##### Running the regression:
-```{r}
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + conj + past_tense, data = .) %>%
-  summary()
-
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + past_tense, data = .) %>%
-  summary()
-```
-
-#### Section 8: Provisional & conditional form
-##### Testing for dependence:
-```{r}
-fisher.test(table(data$prov_cond, data$form))
-```
-
-##### Running the regression:
-```{r}
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ prov_cond, data = .) %>%
-  summary()
-```
-
-#### Section 8.5: Provisional & conditional form + context position + sex + part of speech + past tense + positivity & negativity
-##### Running the regression:
-```{r}
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + past_tense + prov_cond, data = .) %>%
-  summary()
-```
-
-#### Section 9: Question
-##### Testing for dependence:
-```{r}
-fisher.test(table(data$quest, data$form))
-```
-
-#### Section 9.5: Question + provisional & conditional form + context position + sex + part of speech + past tense + positivity & negativity
-##### Running the regression:
-```{r}
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + past_tense + prov_cond + quest, data = .) %>%
-  summary()
-```
-## Final model:
-```{r}
-data.unamb_cont %>%
-  lm(as.numeric(form) ~ context_pos + sex + part_of_speech + pos_neg + past_tense + prov_cond, data = .) %>%
-  summary()
-```
-
-### Visualizing data
-```{r}
-data %>%
-  count(length) %>%
-  ggplot(., aes(x="", y=n, fill=as.factor(length))) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start=0) +
-  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
-  labs(title = "Distribution of length (in syllables)")
-data %>%
-  count(context_pos) %>%
-  ggplot(., aes(x="", y=n, fill=as.factor(context_pos))) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start=0) +
-  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
-  labs(title = "Distribution of conjugations")
-data %>%
-  count(part_of_speech) %>%
-  ggplot(., aes(x="", y=n, fill=as.factor(part_of_speech))) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start=0) +
-  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
-  scale_fill_discrete(labels = c("adjective", "adverb", "participle", "verb")) +
-  labs(title = "Distribution of parts of speech")
-data %>%
-  count(pos_neg) %>%
-  ggplot(., aes(x="", y=n, fill=as.factor(pos_neg))) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start=0) +
-  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
-  scale_fill_discrete(labels = c("negative", "positive")) +
-  labs(title = "Distribution of positivity & negativity")
-data %>%
-  count(past_tense) %>%
-  ggplot(., aes(x="", y=n, fill=as.factor(past_tense))) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start=0) +
-  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
-  scale_fill_discrete(labels = c("non-past", "past")) +
-  labs(title = "Distribution of past tense")
-data %>%
-  count(conj) %>%
-  ggplot(., aes(x="", y=n, fill=as.factor(conj))) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start=0) +
-  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
-  scale_fill_discrete(labels = c("1st", "2nd")) +
-  labs(title = "Distribution of conjugations")
+```{r echo=FALSE}
 data %>%
   count(sex) %>%
   ggplot(., aes(x="", y=n, fill=as.factor(sex))) +
@@ -286,22 +364,195 @@ data %>%
   theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
   scale_fill_discrete(labels = c("female", "male")) +
   labs(title = "Distribution of speakers' sex")
+```
+
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$sex, data$form))
+```
+
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ sex, data = .) %>%
+  print()
+```
+
+##### Incorporating into the best model:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ sex + context_pos + conj, data = .) %>%
+  print()
+```
+
+Good gain in R^2^, updating the best model.
+
+#### 4. Length
+```{r echo=FALSE}
 data %>%
-  count(form) %>%
-  ggplot(., aes(x="", y=n, fill=as.factor(form))) +
+  count(length) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(length))) +
   geom_bar(width = 1, stat = "identity") +
   coord_polar("y", start=0) +
   theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
-  scale_fill_discrete(labels = c("substantivation", "verbal form")) +
-  labs(title = "Distribution of strategies")
+  labs(title = "Distribution of length (in syllables)")
+```
+
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$length, data$form))
+```
+
+No need to even run a regression -- it will not show anything.
+
+##### Incorporating into the best model:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ context_pos + sex + length + conj, data = .) %>%
+  print()
+```
+
+Good gain in R^2^, updating the best model.
+
+#### 5. Parts of speech
+
+```{r echo=FALSE}
+data %>%
+  count(part_of_speech) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(part_of_speech))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("adjective", "adverb", "participle", "verb")) +
+  labs(title = "Distribution of parts of speech")
+```
+
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$part_of_speech, data$form))
+```
+
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ part_of_speech, data = .) %>%
+  print()
+```
+
+##### Incorporating into the best model:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ context_pos + sex + part_of_speech + conj + length, data = .) %>%
+  print()
+```
+
+Very good gain in R^2^, updating the best model.
+
+#### 6. Positivity and negativity
+
+```{r echo=FALSE}
+data %>%
+  count(pos_neg) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(pos_neg))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("negative", "positive")) +
+  labs(title = "Distribution of positivity & negativity")
+```
+
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$pos_neg, data$form))
+```
+
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ pos_neg, data = .) %>%
+  print()
+```
+
+##### Incorporating into the best model:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ context_pos + sex + part_of_speech + conj + length + pos_neg, data = .) %>%
+  print()
+```
+
+Gain in R^2^ is very insufficient, not updating the best model.
+
+#### 7. Past tense
+
+```{r echo=FALSE}
+data %>%
+  count(past_tense) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(past_tense))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("non-past", "past")) +
+  labs(title = "Distribution of past tense")
+```
+
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$past_tense, data$form))
+```
+
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ past_tense, data = .) %>%
+  print()
+```
+
+##### Incorporating into the best model:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ context_pos + sex + part_of_speech + length + conj + past_tense, data = .) %>%
+  print()
+```
+
+Gain in R^2^ is very insufficient, not updating the best model.
+
+#### 8. Provisional and conditional forms
+
+```{r echo=FALSE}
 data %>%
   count(prov_cond) %>%
   ggplot(., aes(x="", y=n, fill=as.factor(prov_cond))) +
   geom_bar(width = 1, stat = "identity") +
   coord_polar("y", start=0) +
   theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "vertical", legend.position="bottom") +
-  scale_fill_discrete(labels = c("not a prov/cond form", "form expressed through separate word", "form expressed through a marker")) +
+  scale_fill_discrete(labels = c("not a prov/cond form", "form expressed through a separate word", "form expressed through a marker")) +
   labs(title = "Distribution of provisional and conditional forms")
+```
+
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$prov_cond, data$form))
+```
+
+##### Running the regression:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ prov_cond, data = .) %>%
+  print()
+```
+
+##### Incorporating into the best model:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ context_pos +conj + sex + part_of_speech + length + prov_cond, data = .) %>%
+  print()
+```
+
+Good gain, updating the model.
+
+#### 9. Question
+
+```{r echo=FALSE}
 data %>%
   count(quest) %>%
   ggplot(., aes(x="", y=n, fill=as.factor(quest))) +
@@ -310,4 +561,40 @@ data %>%
   theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
   scale_fill_discrete(labels = c("not a question", "a question")) +
   labs(title = "Distribution of questions")
+```
+
+##### Testing for dependence:
+```{r}
+fisher.test(table(data$quest, data$form))
+```
+
+No reason to run regression.
+
+##### Incorporating into the best model:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ context_pos + conj + sex + length + part_of_speech + prov_cond + quest, data = .) %>%
+  print()
+```
+
+No changes to R^2^, not updating the model.
+
+## Final model:
+```{r}
+data.unamb_cont %>%
+  lrm(form ~ context_pos +conj + sex + part_of_speech + length + prov_cond, data = .) %>%
+  print()
+```
+
+Our model explains 32% of the dependent variable's variance. It is greater than probability of choosing the substantivation strategy, so it might be a good result.
+
+```{r echo=FALSE}
+data %>%
+  count(form) %>%
+  ggplot(., aes(x="", y=n, fill=as.factor(form))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme(axis.title=element_blank(), legend.title = element_blank(), legend.direction = "horizontal", legend.position="bottom") +
+  scale_fill_discrete(labels = c("substantivation", "verbal form")) +
+  labs(title = "Distribution of strategies")
 ```
