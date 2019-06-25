@@ -11,19 +11,22 @@ Ekaterina Birjukova, Alexandra Efimova
 There are two different ways of expressing ability to do something in Japanese: one through verb substantivation, another through a verbal form, and there is no difference in meaning between them. We believe that form choice depends on conjugation (we will consider only the first and the second one, leaving out the third one as its ability-expressing strategy is somewhat different), length of the verb that holds the main semantics (the number of syllables that it comprises) and a number of other factors.
 
 ### Research design
-Our research will be based on materials from parallel Japanese-English corpora at [https://context.reverso.net/](https://context.reverso.net/) and [http://www.manythings.org/corpus/](http://www.manythings.org/corpus/). We will also use data from [https://www5.atwiki.jp/hmiku/](https://www5.atwiki.jp/hmiku/) lyrics database for more precise statistical testing.
+Our research is based on materials from parallel Japanese-English corpora at [https://context.reverso.net/](https://context.reverso.net/) and [http://www.manythings.org/corpus/](http://www.manythings.org/corpus/). We also used data from [https://www5.atwiki.jp/hmiku/](https://www5.atwiki.jp/hmiku/) lyrics database for more precise statistical testing.
+
 Null hypothesis is as follows:
-Choice strategy for expressing ability in Japanese verbs is completely random and does not depend on any of the mentioned factors.
+
+* Choice strategy for expressing ability in Japanese verbs is completely random and does not depend on any of the mentioned factors.
+
 Alternative hypothesis:
-There is a more or less clear pattern that allows actually calling this choice a strategy.
-We intend to use logistic regression to check whether the mentioned effects are statistically significant and whether they have any intrinsic correlation between each other.
+
+* There is a more or less clear pattern that allows actually calling this choice a strategy.
 
 ### Our data
 All data has been collected with web scraping script written in Python. There are currently several hundred examples from the parallel corpora and approximately thirty thousand texts from the database. The data can be accessed on [GitHub](https://github.com/kateabr/r_project_data).
 
 From all the data we have collected, we have gathered information about 52 randomly picked verbs. Each line of our data table contains following properties:
 
-1. __inf__ _[character string]_ -- verb in its infinitive form (we decided to preserve it, because there are a few cases of homonymy);
+1. __inf__ _[character string]_ -- verb in its infinitive form;
 
 2. __length__ _[non-negative integer number]_ -- length of the verb’s infinitive form in syllables;
 
@@ -46,8 +49,6 @@ From all the data we have collected, we have gathered information about 52 rando
   + _v_ -- verb;
 
   + _part_ -- participle;
-
-  (Note that the division is purely empirical: we assigned labels based on the word's behavious; more on this later in the paper)
 
 6. __pos_neg__ _[factor]_ -- whether the verb or the verb to which the target verb form is attached has or has not negation:
 
@@ -73,7 +74,7 @@ From all the data we have collected, we have gathered information about 52 rando
 
   + _m_ -- male;
 
-10. __form__ __[factor]__ -- type of the strategy:
+10. __form__ _[factor]_ -- type of the strategy:
 
   + _vf_ -- verbal form;
 
@@ -337,7 +338,9 @@ Unsurprisingly, inclusion of ambiguous context produces worse results. From now 
 # mixed model
 data.unamb_cont %>%
   glmer(form ~ context_pos + (1|conj),
-        family = binomial(link="logit"), data = ., control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=10000))) -> gl2.5
+        family = binomial(link="logit"), data = .,
+        control = glmerControl(optimizer = "bobyqa",
+                               optCtrl = list(maxfun=10000))) -> gl2.5
 summary(gl2.5)
 icc(gl2.5)
 ```
@@ -510,7 +513,8 @@ data.unamb_cont %>%
 ##### Incorporating into the best model:
 ```{r}
 data.unamb_cont %>%
-  lrm(form ~ context_pos + sex + part_of_speech + length + conj + past_tense, data = .) %>%
+  lrm(form ~ context_pos + sex + part_of_speech +
+        length + conj + past_tense, data = .) %>%
   print()
 ```
 
@@ -573,7 +577,8 @@ No reason to run regression.
 ##### Incorporating into the best model:
 ```{r}
 data.unamb_cont %>%
-  lrm(form ~ context_pos + conj + sex + length + part_of_speech + prov_cond + quest, data = .) %>%
+  lrm(form ~ context_pos + conj + sex + length +
+        part_of_speech + prov_cond + quest, data = .) %>%
   print()
 ```
 
