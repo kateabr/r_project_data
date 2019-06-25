@@ -21,7 +21,7 @@ We intend to use logistic regression to check whether the mentioned effects are 
 ### Our data
 All data has been collected with web scraping script written in Python. There are currently several hundred examples from the parallel corpora and approximately thirty thousand texts from the database. The data can be accessed on [GitHub](https://github.com/kateabr/r_project_data).
 
-From all the data We have collected, we have gathered information about 52 randomly picked verbs. Each line of our data table contains following properties:
+From all the data we have collected, we have gathered information about 52 randomly picked verbs. Each line of our data table contains following properties:
 
 1. __inf__ _[character string]_ -- verb in its infinitive form (we decided to preserve it, because there are a few cases of homonymy);
 
